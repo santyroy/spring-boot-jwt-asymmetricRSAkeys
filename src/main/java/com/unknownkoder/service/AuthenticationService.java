@@ -110,4 +110,13 @@ public class AuthenticationService {
 
         return new LoginResponseDtoV2(applicationUser, jwt, refreshToken);
     }
+
+    public void deleteRefreshToken(String refreshToken) {
+        Optional<RefreshToken> token = refreshTokenRepository.findByToken(refreshToken);
+        if (token.isEmpty()) {
+            LOG.info("Refresh Token not found!");
+        } else {
+            refreshTokenRepository.delete(token.get());
+        }
+    }
 }

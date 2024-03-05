@@ -6,9 +6,12 @@ import com.unknownkoder.dto.RegistrationDto;
 import com.unknownkoder.model.ApplicationUser;
 import com.unknownkoder.service.AuthenticationService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/auth")
@@ -28,6 +31,8 @@ public class AuthController {
         LoginResponseDtoV2 loginResponseDtoV2 = authenticationService.login(dto.username(), dto.password());
         Cookie cookie = new Cookie("refreshToken", loginResponseDtoV2.refreshToken());
         cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setMaxAge(60 * 5); // 5 minutes
         httpServletResponse.addCookie(cookie);
         return loginResponseDtoV2;
     }
@@ -35,5 +40,15 @@ public class AuthController {
     @PostMapping("/refresh")
     public LoginResponseDtoV2 getNewJWT(@RequestBody RefreshTokenRequestDto dto) {
         return authenticationService.getNewJWT(dto);
+    }
+
+    @PostMapping("/logout")
+    public void logoutUser(HttpServletRequest httpServletRequest) {
+        Cookie[] cookies = httpServletRequest.getCookies();
+        Arrays.stream(cookies).forEach(cookie -> {
+            if(cookie.getName().equals("refreshToken")) {
+                authenticationService.deleteRefreshToken(cookie.getValue());
+            }
+        });
     }
 }
