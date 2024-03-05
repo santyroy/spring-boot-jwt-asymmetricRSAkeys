@@ -1,9 +1,12 @@
 package com.unknownkoder.controller;
 
-import com.unknownkoder.dto.LoginResponseDto;
+import com.unknownkoder.dto.LoginResponseDtoV2;
+import com.unknownkoder.dto.RefreshTokenRequestDto;
 import com.unknownkoder.dto.RegistrationDto;
 import com.unknownkoder.model.ApplicationUser;
 import com.unknownkoder.service.AuthenticationService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +24,16 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponseDto loginUser(@RequestBody RegistrationDto dto) {
-        return authenticationService.login(dto.username(), dto.password());
+    public LoginResponseDtoV2 loginUser(@RequestBody RegistrationDto dto, HttpServletResponse httpServletResponse) {
+        LoginResponseDtoV2 loginResponseDtoV2 = authenticationService.login(dto.username(), dto.password());
+        Cookie cookie = new Cookie("refreshToken", loginResponseDtoV2.refreshToken());
+        cookie.setHttpOnly(true);
+        httpServletResponse.addCookie(cookie);
+        return loginResponseDtoV2;
+    }
+
+    @PostMapping("/refresh")
+    public LoginResponseDtoV2 getNewJWT(@RequestBody RefreshTokenRequestDto dto) {
+        return authenticationService.getNewJWT(dto);
     }
 }

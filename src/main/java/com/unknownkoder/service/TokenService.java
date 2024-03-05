@@ -1,5 +1,6 @@
 package com.unknownkoder.service;
 
+import com.unknownkoder.model.ApplicationUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -31,7 +32,26 @@ public class TokenService {
         JwtClaimsSet claimsSet = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
+                .expiresAt(now.plusSeconds(120))
                 .subject(auth.getName())
+                .claim("roles", scope)
+                .build();
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    }
+
+    public String generateJWT(ApplicationUser appUser) {
+        Instant now = Instant.now();
+
+        String scope = appUser.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(" "));
+
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(120))
+                .subject(appUser.getUsername())
                 .claim("roles", scope)
                 .build();
 
