@@ -43,11 +43,14 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public void logoutUser(HttpServletRequest httpServletRequest) {
+    public void logoutUser(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         Cookie[] cookies = httpServletRequest.getCookies();
         Arrays.stream(cookies).forEach(cookie -> {
             if(cookie.getName().equals("refreshToken")) {
                 authenticationService.deleteRefreshToken(cookie.getValue());
+                Cookie deleteServletCookie = new Cookie("refreshToken", null);
+                deleteServletCookie.setMaxAge(0);
+                httpServletResponse.addCookie(deleteServletCookie);
             }
         });
     }
